@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kelvin Fornecedor · Vitrine</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0A0A;color:#FFFFFF;font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#F5D77A}a:hover{color:#FFFFFF}
+button{font-family:inherit;color:inherit}
+.disp{font-family:Anton,'Arial Narrow',Impact,sans-serif;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
+.gold-text{background:linear-gradient(135deg,#D4AF37 0%,#F5D77A 50%,#D4AF37 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gold-btn{background:linear-gradient(135deg,#D4AF37 0%,#F5D77A 55%,#D4AF37 100%);color:#0A0A0A;border:0;text-decoration:none;box-shadow:0 8px 24px rgba(212,175,55,.28);transition:transform .15s ease,box-shadow .15s ease}
+.gold-btn:hover{color:#0A0A0A;box-shadow:0 10px 30px rgba(212,175,55,.4)}
+.gold-btn:active,.ghost-btn:active,.chip:active,.qbtn:active{transform:scale(.96)}
+.ghost-btn{background:transparent;color:#F5D77A;border:1px solid rgba(212,175,55,.55);text-decoration:none;transition:transform .15s ease,background .15s ease}
+.ghost-btn:hover{background:rgba(212,175,55,.08);color:#F5D77A}
+.chips{scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;height:40px;padding:0 18px;border-radius:999px;border:1px solid #2A2A2A;background:rgba(255,255,255,.035);color:#C9C9C9;font-size:14px;font-weight:600;cursor:pointer;position:relative;z-index:1;transition:transform .15s ease,color 0s linear .12s}
+.chip.on{color:#0A0A0A;border-color:transparent;background:transparent}
+/* Pílula dourada que desliza até o filtro tocado (só transform) */
+.chips{position:relative}
+.chip-ind{position:absolute;top:2px;left:0;height:40px;border-radius:999px;background:linear-gradient(135deg,#D4AF37,#F5D77A);box-shadow:0 4px 14px rgba(212,175,55,.3);transform-origin:0 50%;z-index:0;pointer-events:none}
+.chip-ind.anim{transition:transform .3s cubic-bezier(.34,1.32,.64,1)}
+.card{display:flex;flex-direction:column;text-align:left;padding:0;background:#121212;border:1px solid rgba(212,175,55,.22);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.45);transition:transform .32s cubic-bezier(.3,1.5,.5,1),border-color .2s ease;opacity:0;-webkit-tap-highlight-color:transparent}
+.card.in{opacity:1;animation:cardIn .55s cubic-bezier(.2,.8,.2,1) backwards}
+.card.out{opacity:0;animation:cardOut .16s ease-out}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes cardOut{from{opacity:1}to{opacity:0}}
+.card:hover{border-color:rgba(212,175,55,.6)}
+.card:active{transform:scale(.97);transition-duration:.08s}
+.card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#1A1A1A}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(28px) scale(.98)}to{opacity:1;transform:none}}
+@supports (animation-timeline: view()){
+.reveal{animation:rise linear both;animation-timeline:view();animation-range:entry 0% entry 35%}
+}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* Painel sobe com mola: passa um pouco do ponto e assenta */
+@keyframes sheetUp{0%{transform:translateY(100%);animation-timing-function:cubic-bezier(.2,.8,.3,1)}55%{transform:translateY(-2.2%);animation-timing-function:ease-in-out}78%{transform:translateY(.8%);animation-timing-function:ease-in-out}100%{transform:translateY(0)}}
+.backdrop{opacity:1;animation:fade .25s ease both}
+.sheet{animation:sheetUp .6s both}
+/* Contador rolante: cada dígito é uma coluna 0–9 que desliza */
+.odo{display:inline-flex;flex-direction:row-reverse;justify-content:flex-end;height:1.1em;line-height:1.1em;overflow:hidden;vertical-align:top;font-variant-numeric:tabular-nums}
+.odo-d{display:inline-block;height:1.1em;overflow:hidden}
+.odo-col{display:flex;flex-direction:column;transition:transform .5s cubic-bezier(.2,.9,.25,1.08)}
+.odo-col span{display:block;height:1.1em;text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Selo Preço baixou: pulo rápido, fica e some (duas classes para reiniciar a animação) */
+.drop{position:absolute;top:-12px;right:-6px;z-index:2;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;background:linear-gradient(135deg,#D4AF37,#F5D77A);color:#0A0A0A;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 6px 16px rgba(212,175,55,.4);transform-origin:80% 100%;opacity:0}
+.drop.a{animation:dropA 1.5s ease both}.drop.b{animation:dropB 1.5s ease both}
+@keyframes dropA{0%{opacity:0;transform:translateY(6px) scale(.6)}10%{opacity:1;transform:translateY(-3px) scale(1.1)}18%{transform:translateY(0) scale(1)}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px) scale(.96)}}
+@keyframes dropB{0%{opacity:0;transform:translateY(6px) scale(.6)}10%{opacity:1;transform:translateY(-3px) scale(1.1)}18%{transform:translateY(0) scale(1)}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px) scale(.96)}}
+.qbtn{width:48px;height:48px;border-radius:14px;border:1px solid rgba(212,175,55,.5);background:#161616;color:#F5D77A;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease}
+.qbtn:disabled{opacity:.35;cursor:default}
+.qinput{width:84px;height:48px;border-radius:14px;border:1px solid #2A2A2A;background:#0A0A0A;color:#FFFFFF;text-align:center;font-family:Anton,Impact,sans-serif;font-size:26px;outline:none}
+.qinput:focus{border-color:#D4AF37}
+details.faq{border:1px solid #232323;border-radius:16px;background:#111111;transition:border-color .2s ease}
+details.faq[open]{border-color:rgba(212,175,55,.45)}
+details.faq summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;min-height:56px;font-size:15px;font-weight:600}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary svg{flex:0 0 auto;transition:transform .25s ease}
+details.faq[open] summary svg{transform:rotate(180deg)}
+details.faq[open] .ans{animation:fade .3s ease both}
+.fab{position:fixed;bottom:20px;right:max(18px, calc(50% - 262px));width:60px;height:60px;border-radius:50%;background:#25D366;color:#FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(37,211,102,.38),0 0 0 3px rgba(10,10,10,.9),0 0 0 4px rgba(212,175,55,.6);z-index:40;text-decoration:none;opacity:0;transform:translateY(16px) scale(.7);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.fab.show{opacity:1;transform:none;pointer-events:auto;animation:fabIn .6s backwards}
+@keyframes fabIn{0%{opacity:0;transform:translateY(24px) scale(.6);animation-timing-function:cubic-bezier(.2,.8,.3,1)}60%{opacity:1;transform:translateY(-5px) scale(1.06);animation-timing-function:ease-in-out}100%{transform:none}}
+/* Onda dourada a cada 6s */
+.fab::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid #D4AF37;opacity:0;pointer-events:none}
+.fab.show::after{animation:fabPulse 6s ease-out 1.2s infinite}
+@keyframes fabPulse{0%{opacity:.85;transform:scale(1)}22%{opacity:0;transform:scale(1.75)}100%{opacity:0;transform:scale(1.75)}}
+/* Brilho que atravessa (botão do painel a cada 3s, selo a cada 4s) */
+.sweep{position:relative;overflow:hidden;isolation:isolate}
+.sweep::after{content:"";position:absolute;top:-30%;bottom:-30%;left:0;width:45%;background:linear-gradient(100deg,rgba(255,250,225,0) 0%,rgba(255,250,225,.7) 50%,rgba(255,250,225,0) 100%);transform:translateX(-160%) skewX(-18deg);pointer-events:none;animation:sweep var(--sweep,3s) ease-in-out .8s infinite}
+.sweep-4{--sweep:4s}
+@keyframes sweep{0%{transform:translateX(-160%) skewX(-18deg)}32%{transform:translateX(360%) skewX(-18deg)}100%{transform:translateX(360%) skewX(-18deg)}}
+.fab:hover{color:#FFFFFF}
+.fab.show:active{transform:scale(.92)}
+/* Entrada do topo */
+.hero-img{transform-origin:50% 30%;animation:heroZoom 1.6s cubic-bezier(.22,.61,.36,1) both;will-change:transform}
+@keyframes heroZoom{from{transform:scale(1.08)}to{transform:scale(1)}}
+.hline{position:relative;display:block;width:max-content;overflow:hidden;padding:.04em 0 .06em;margin:-.04em 0 -.06em}
+.hline-in{display:block;animation:lineUp .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lineUp{from{opacity:0;transform:translateY(105%)}to{opacity:1;transform:none}}
+/* Brilho: a janela (com máscara em faixa) atravessa da esquerda para a direita; o texto dentro dela anda ao contrário e fica parado na tela. Só transform e opacity. */
+.shine{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;-webkit-mask-image:linear-gradient(105deg,transparent 30%,#000 47%,#000 53%,transparent 70%);mask-image:linear-gradient(105deg,transparent 30%,#000 47%,#000 53%,transparent 70%);animation:shineWin 1.15s cubic-bezier(.45,.05,.35,1) both}
+.shine-text{position:absolute;inset:.04em 0 .06em;display:block;color:#FFF7D6;text-shadow:0 0 18px rgba(245,215,122,.55);animation:shineTxt 1.15s cubic-bezier(.45,.05,.35,1) both}
+@keyframes shineWin{0%{opacity:0;transform:translateX(-100%)}12%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
+@keyframes shineTxt{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+/* Máquina de escrever (só transform e opacity): a janela abre em 34 passos; o texto anda ao contrário e fica parado; o cursor acompanha a borda da janela */
+.tw{position:relative;width:fit-content;max-width:100%;overflow:hidden;white-space:nowrap;padding-right:4px}
+.tw-win{display:block;overflow:hidden;animation:twWin 1.8s steps(34,end) 1.3s both}
+.tw-txt{display:block;animation:twTxt 1.8s steps(34,end) 1.3s both}
+.tw-move{position:absolute;top:0;bottom:0;left:0;width:calc(100% - 4px);pointer-events:none;animation:twWin 1.8s steps(34,end) 1.3s both}
+.tw-cur{position:absolute;top:.12em;bottom:.08em;right:-3px;width:2px;border-radius:1px;background:#D4AF37;opacity:0;animation:twCur 4.05s step-end 1.3s both}
+@keyframes twWin{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes twTxt{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes twCur{0%{opacity:1}44.4%{opacity:1}53.7%{opacity:0}63%{opacity:1}72.2%{opacity:0}81.5%{opacity:1}90.7%{opacity:0}100%{opacity:0}}
+/* Fundo do fechamento: faixa de degradê 2x mais larga deslizando em loop (só transform) */
+.glow-bg{position:relative;overflow:hidden;isolation:isolate}
+.glow-bg::before{content:"";position:absolute;top:0;bottom:0;left:0;width:200%;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#0A0A0A 0%,#1A1408 25%,#0A0A0A 50%,#1A1408 75%,#0A0A0A 100%);animation:glowMove 12s linear infinite;will-change:transform}
+@keyframes glowMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Reduzir movimento: tudo parado, sem brilho */
+@media (prefers-reduced-motion: reduce){
+*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.shine{display:none}
+.card{opacity:1!important}
+.drop{opacity:1!important}
+}
+</style>
+</helmet>
+
+<div style="max-width: 540px; margin: 0 auto; background: #0A0A0A; min-height: 100vh; position: relative; overflow-x: hidden; padding-bottom: 96px">
+
+<!-- 1. TOPO -->
+<header ref="{{setHero}}" style="position: relative; height: 440px; overflow: hidden; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px">
+<img class="hero-img" src="./assets/de56eebf32807a25fb10a6e4eebf343b.jpg" alt="Kelvin, fornecedor da WK Multimarcas" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.25) 40%, rgba(10,10,10,0.88) 72%, #0A0A0A 100%)"></div>
+<div style="position: absolute; top: 18px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #F5D77A; background: rgba(10,10,10,0.6); border: 1px solid rgba(212,175,55,0.45); padding: 7px 12px; border-radius: 999px; backdrop-filter: blur(6px)">WK Multimarcas</span>
+<span style="font-size: 11px; font-weight: 600; color: #E6E6E6; background: rgba(10,10,10,0.6); padding: 7px 12px; border-radius: 999px; backdrop-filter: blur(6px)">Atacado masculino</span>
+</div>
+<div style="position: absolute; left: 20px; right: 20px; bottom: 24px; display: flex; flex-direction: column; gap: 10px">
+<h1 class="disp" aria-label="Kelvin Fornecedor" style="margin: 0; font-size: 52px; line-height: 0.95">
+<span class="hline" aria-hidden="true"><span class="hline-in gold-text" style="animation-delay: 150ms">Kelvin</span><span class="shine" style="animation-delay: 1250ms"><span class="shine-text" style="animation-delay: 1250ms">Kelvin</span></span></span>
+<span class="hline" aria-hidden="true"><span class="hline-in gold-text" style="animation-delay: 270ms">Fornecedor</span><span class="shine" style="animation-delay: 1330ms"><span class="shine-text" style="animation-delay: 1330ms">Fornecedor</span></span></span>
+</h1>
+<p class="tw" style="margin: 0; font-size: clamp(15px, 4.4vw, 17px); font-weight: 500; color: #F2F2F2"><span class="tw-win"><span class="tw-txt">Roupas de giro para você revender.</span></span><span class="tw-move" aria-hidden="true"><span class="tw-cur"></span></span></p>
+<div ref="{{setBadges}}" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #F5D77A; border: 1px solid rgba(212,175,55,0.55); background: rgba(212,175,55,0.08); padding: 7px 12px; border-radius: 999px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"></circle><path d="M8.2 13.2 7 22l5-3 5 3-1.2-8.8"></path></svg><span style="font-variant-numeric: tabular-nums">{{yearsLabel}}</span>&nbsp;anos de mercado</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #F5D77A; border: 1px solid rgba(212,175,55,0.55); background: rgba(212,175,55,0.08); padding: 7px 12px; border-radius: 999px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.9"></path><path d="M16 3.1a4 4 0 0 1 0 7.8"></path></svg><span style="font-variant-numeric: tabular-nums">+{{storesLabel}}</span>&nbsp;lojistas</span>
+</div>
+</div>
+</header>
+
+<!-- 2. FAIXA -->
+<section class="reveal" aria-label="Como funciona" style="margin: 20px 16px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 14px 6px; border: 1px solid rgba(212,175,55,0.25); border-radius: 16px; background: #111111">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5D77A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5z"></path><path d="m3 12 9 5 9-5"></path><path d="m3 17 9 5 9-5"></path></svg>
+<span style="font-size: 12px; line-height: 1.3; font-weight: 600; color: #E6E6E6">A partir de 6 peças</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 14px 6px; border: 1px solid rgba(212,175,55,0.25); border-radius: 16px; background: #111111">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5D77A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="m16 10 6-3v10l-6-3"></path></svg>
+<span style="font-size: 12px; line-height: 1.3; font-weight: 600; color: #E6E6E6">Separação ao vivo por vídeo</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 14px 6px; border: 1px solid rgba(212,175,55,0.25); border-radius: 16px; background: #111111">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5D77A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 4h14v12H1z"></path><path d="M15 9h4l3 3v4h-7"></path><circle cx="5.5" cy="18.5" r="2"></circle><circle cx="18.5" cy="18.5" r="2"></circle></svg>
+<span style="font-size: 12px; line-height: 1.3; font-weight: 600; color: #E6E6E6">Envio em até 48h úteis</span>
+</div>
+</section>
+
+<!-- 3. VITRINE -->
+<section aria-label="Vitrine" style="margin-top: 32px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 16px; margin-bottom: 14px">
+<h2 class="disp" style="margin: 0; font-size: 30px; line-height: 1">Vitrine</h2>
+<span style="font-size: 13px; color: #A8A8A8">{{countLabel}}</span>
+</div>
+<div class="chips" role="group" aria-label="Filtrar categorias" style="display: flex; gap: 8px; overflow-x: auto; padding: 2px 16px 4px">
+<span class="{{indCls}}" aria-hidden="true" style="width: {{ind.w}}px; transform: translateX({{ind.x}}px) scaleX({{ind.s}}); opacity: {{ind.o}}"></span>
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="6">
+<button type="button" class="{{f.cls}}" ref="{{f.ref}}" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.label}}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 16px 16px 0">
+<sc-for list="{{visible}}" as="p" hint-placeholder-count="6">
+<button type="button" class="{{p.cls}}" style="animation-delay: {{p.delay}}ms" ref="{{p.ref}}" onClick="{{p.open}}" aria-label="{{p.aria}}">
+<div style="position: relative">
+<sc-if value="{{p.img}}" hint-placeholder-val="{{ true }}">
+<img src="{{p.img}}" alt="" loading="lazy" decoding="async">
+</sc-if>
+<sc-if value="{{p.noImg}}" hint-placeholder-val="{{ false }}">
+<div style="aspect-ratio: 3 / 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #161616; color: #8F8F8F; font-size: 12px; font-weight: 600"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 7.3 16 4l-1.5 1.5a3.5 3.5 0 0 1-5 0L8 4 3.6 7.3 5.5 11 7 10v10h10V10l1.5 1z"></path></svg>Foto em breve</div>
+</sc-if>
+<sc-if value="{{p.badge}}" hint-placeholder-val="{{ false }}">
+<span class="{{p.badgeCls}}" style="position: absolute; top: 10px; left: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0A0A0A; background: linear-gradient(135deg, #D4AF37, #F5D77A); padding: 5px 9px; border-radius: 999px; box-shadow: 0 4px 12px rgba(0,0,0,0.4)">{{p.badge}}</span>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 14px">
+<span style="font-size: 14px; line-height: 1.25; font-weight: 600; color: #FFFFFF">{{p.short}}</span>
+<span style="font-size: 12px; color: #A8A8A8">a partir de <strong class="gold-text" style="font-size: 15px; font-weight: 700">{{p.fromLabel}}</strong></span>
+</div>
+</button>
+</sc-for>
+</div>
+</section>
+
+<!-- 5. DÚVIDAS -->
+<section class="reveal" aria-label="Dúvidas rápidas" style="margin: 40px 16px 0; display: flex; flex-direction: column; gap: 10px">
+<h2 class="disp" style="margin: 0 0 6px; font-size: 30px; line-height: 1">Dúvidas rápidas</h2>
+<details class="faq"><summary>Qual o pedido mínimo?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">6 peças do mesmo produto. A partir de 10 peças, você pode misturar produtos diferentes.</p></details>
+<details class="faq"><summary>Como escolho os modelos?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">Na chamada de vídeo, ao vivo, com o estoque do dia. Nosso giro é muito alto, por isso as fotos são referência.</p></details>
+<details class="faq"><summary>Preciso ter loja ou CNPJ?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">Não. Atendemos lojistas, quem está começando e pessoa física.</p></details>
+<details class="faq"><summary>Como pago?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">Aceitamos todas as formas de pagamento.</p></details>
+<details class="faq"><summary>Qual o prazo de envio?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">Até 48h úteis após o pagamento.</p></details>
+<details class="faq"><summary>E o frete?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary><p class="ans" style="margin: 0; padding: 0 18px 16px; font-size: 14px; line-height: 1.5; color: #BDBDBD">Calculado pelo peso e tamanho do pedido, direto no nosso WhatsApp.</p></details>
+</section>
+
+<!-- 6. FECHAMENTO -->
+<section class="reveal glow-bg" style="margin: 40px 16px 0; padding: 32px 22px; border-radius: 24px; border: 1px solid rgba(212,175,55,0.45); background: #0A0A0A; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; box-shadow: 0 14px 40px rgba(0,0,0,0.5)">
+<h2 class="disp" style="margin: 0; font-size: 34px; line-height: 1.05">Pronto para começar <span class="gold-text">sua revenda?</span></h2>
+<a class="gold-btn" href="{{waStart}}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 56px; border-radius: 16px; font-size: 16px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2-5.3A8.4 8.4 0 1 1 21 11.5z"></path></svg>Falar com o Kelvin</a>
+</section>
+
+<footer style="margin-top: 28px; padding: 0 16px; text-align: center; font-size: 12px; color: #8C8C8C">WK Multimarcas · Kelvin Fornecedor</footer>
+
+<!-- 7. BOTÃO FLUTUANTE -->
+<sc-if value="{{showFab}}" hint-placeholder-val="{{ true }}">
+<a class="{{fabCls}}" tabIndex="{{fabTab}}" aria-hidden="{{fabHidden}}" href="{{waStart}}" target="_blank" rel="noopener noreferrer" aria-label="Falar com o Kelvin no WhatsApp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2-5.3A8.4 8.4 0 1 1 21 11.5z"></path><path d="M9 9.5c.3 1.6 1.8 3.4 3.6 4.2l1.2-1.1 1.8.8-.4 1.5c-3 .2-6.4-2.8-6.9-5.8l1.4-.7.9 1.6z"></path></svg></a>
+</sc-if>
+
+<!-- 4. PAINEL DO PRODUTO -->
+<sc-if value="{{open}}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center">
+<button type="button" class="backdrop" aria-label="Fechar" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(0,0,0,0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: pointer"></button>
+<section class="sheet" aria-label="{{cur.name}}" style="position: relative; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; background: #0F0F0F; border-top: 1px solid rgba(212,175,55,0.6); border-top-left-radius: 26px; border-top-right-radius: 26px; box-shadow: 0 -20px 50px rgba(0,0,0,0.6), 0 40px 0 0 #0F0F0F; padding-bottom: 24px">
+<div aria-hidden="true" style="position: sticky; top: 0; z-index: 2; display: flex; justify-content: center; padding-top: 10px; height: 0"><span style="width: 42px; height: 5px; border-radius: 999px; background: rgba(255,255,255,0.35)"></span></div>
+<button type="button" aria-label="Fechar" onClick="{{close}}" style="position: absolute; top: 14px; right: 14px; z-index: 3; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(212,175,55,0.45); background: rgba(10,10,10,0.75); color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(6px)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+<sc-if value="{{cur.img}}" hint-placeholder-val="{{ true }}">
+<img src="{{cur.img}}" alt="{{cur.name}}" style="display: block; width: 100%; height: 340px; object-fit: cover; border-top-left-radius: 26px; border-top-right-radius: 26px">
+</sc-if>
+<sc-if value="{{cur.noImg}}" hint-placeholder-val="{{ false }}">
+<div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #161616; color: #8F8F8F; font-size: 13px; font-weight: 600; border-top-left-radius: 26px; border-top-right-radius: 26px">Foto em breve</div>
+</sc-if>
+<div style="padding: 20px 18px 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-if value="{{cur.badge}}" hint-placeholder-val="{{ false }}">
+<span class="{{cur.badgeCls}}" style="align-self: flex-start; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0A0A0A; background: linear-gradient(135deg, #D4AF37, #F5D77A); padding: 5px 10px; border-radius: 999px">{{cur.badge}}</span>
+</sc-if>
+<h3 class="disp" style="margin: 0; font-size: 28px; line-height: 1.05">{{cur.name}}</h3>
+<p style="margin: 0; font-size: 14px; color: #BDBDBD">{{cur.desc}}</p>
+</div>
+
+<div style="border: 1px solid rgba(212,175,55,0.4); border-radius: 20px; background: #141414; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<span style="font-size: 13px; font-weight: 600; color: #BDBDBD">Quantidade de peças</span>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" class="qbtn" aria-label="Menos uma peça" onClick="{{dec}}" disabled="{{atMin}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<input class="qinput" type="text" inputmode="numeric" aria-label="Quantidade de peças" value="{{qtyText}}" onChange="{{onQty}}" onBlur="{{onQtyBlur}}">
+<button type="button" class="qbtn" aria-label="Mais uma peça" onClick="{{inc}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="position: relative; display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: #0A0A0A">
+<span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #A8A8A8">Por peça</span>
+<span class="disp" style="font-size: 30px; line-height: 1.1; color: #F5D77A"><span class="sr">{{calc.unit}}</span><span class="odo" aria-hidden="true"><sc-for list="{{calc.unitOdo}}" as="ch" hint-placeholder-count="7"><sc-if value="{{ch.isD}}" hint-placeholder-val="{{ true }}"><span class="odo-d"><span class="odo-col" style="transform: translateY(-{{ch.y}}%)"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span></sc-if><sc-if value="{{ch.isS}}" hint-placeholder-val="{{ false }}"><span>{{ch.ch}}</span></sc-if></sc-for></span></span>
+<sc-if value="{{dropOn}}" hint-placeholder-val="{{ false }}">
+<span class="{{dropCls}}" role="status"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg>Preço baixou!</span>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: #0A0A0A">
+<span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #A8A8A8">Total</span>
+<span class="disp" style="font-size: 30px; line-height: 1.1; color: #FFFFFF"><span class="sr">{{calc.total}}</span><span class="odo" aria-hidden="true"><sc-for list="{{calc.totalOdo}}" as="ch" hint-placeholder-count="8"><sc-if value="{{ch.isD}}" hint-placeholder-val="{{ true }}"><span class="odo-d"><span class="odo-col" style="transform: translateY(-{{ch.y}}%)"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span></sc-if><sc-if value="{{ch.isS}}" hint-placeholder-val="{{ false }}"><span>{{ch.ch}}</span></sc-if></sc-for></span></span>
+</div>
+</div>
+<sc-if value="{{calc.packNote}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 13px; font-weight: 600; color: #F5D77A">{{calc.packNote}}</span>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5D77A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>
+<span style="font-size: 14px; color: #F2F2F2">Você economiza <strong style="color: #F5D77A">{{calc.save}}</strong> <span style="color: #A8A8A8">({{calc.pct}} vs. varejo {{cur.retailLabel}}/pç)</span></span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9E9E9E">{{cur.tierLine}}</p>
+</div>
+
+<p style="margin: -4px 0 0; font-size: 12px; color: #A8A8A8; display: flex; gap: 6px; align-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"></path><path d="M4 20 21 3"></path><path d="M21 16v5h-5"></path><path d="m15 15 6 6"></path><path d="M4 4l5 5"></path></svg>A partir de 10 peças você pode misturar produtos diferentes.</p>
+
+<sc-if value="{{cur.ref}}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9E9E9E; padding: 10px 12px; border-radius: 12px; border: 1px dashed #333333">Fotos de referência. Os modelos do dia você escolhe na chamada de vídeo.</p>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<a class="gold-btn sweep" href="{{waOrder}}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 58px; border-radius: 16px; font-size: 17px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2-5.3A8.4 8.4 0 1 1 21 11.5z"></path></svg>Separar no WhatsApp</a>
+<a class="ghost-btn" href="{{cur.drive}}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 16px; font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Ver fotos</a>
+</div>
+</div>
+</section>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":3400}}'>
+var WA = 'https://wa.me/5511963626584';
+var PRODUCTS = [
+  { id: 'time', cat: 'Camisetas', name: 'Camisetas de Time Nacional Premium', short: 'Camisetas de Time', desc: 'Temporada 2026 e retrôs, tecido colmeia dryfit.', img: './assets/0bb0ac007475ddf5d9e80c66c79064a8.jpg', retail: 59.99, tiers: [[6, 38.99], [10, 36.99], [90, 32.99]], badge: 'Catálogo atualizado', ref: false, drive: 'https://drive.google.com/drive/folders/1sTKs5ZOXTjs_uXJoGqpTw4V9R6_EWTp-' },
+  { id: 'zaratex', cat: 'Camisetas', name: 'Camiseta Zara Texturizada', short: 'Zara Texturizada', desc: 'Malha texturizada, visual premium.', img: './assets/ed4ea6050cc87542bcef4792a35965fe.jpg', retail: 60.00, tiers: [[6, 40.00], [10, 37.99], [31, 36.50], [90, 34.99], [200, 32.99]], drive: 'https://drive.google.com/drive/folders/1Oyp0UtoB6VdFiZIBuuKCqU_kjmChF7jk' },
+  { id: 'italia', cat: 'Camisetas', name: 'Camisetão Zara Itália', short: 'Camisetão Zara Itália', desc: 'Waffer com elastano e botões madrepérola.', img: './assets/63bbb61425bac828eb7f8f4b89a6e04d.jpg', retail: 89.99, tiers: [[6, 59.99], [10, 54.99], [31, 53.99], [80, 50.99], [200, 47.99]], drive: 'https://drive.google.com/drive/folders/1P9eqTsRigKUU9m8lnWQnJ0bsggFoCpNn' },
+  { id: 'oversize', cat: 'Camisetas', name: 'Oversize Suedini', short: 'Oversize Suedini', desc: 'Malhão 240g com estampa DTF.', img: './assets/b72bdf9a0f877bf76efae6d58bbb1c97.jpg', retail: 59.99, tiers: [[6, 44.99], [10, 38.99], [90, 32.99]], drive: 'https://drive.google.com/drive/folders/12uuzrjFpRDx8IpqS27PgIfMC_58Pd0F_' },
+  { id: 'peruana', cat: 'Camisetas', name: 'Peruanas Gold', short: 'Peruanas Gold', desc: 'Estampas exclusivas.', img: './assets/95683c43f20824bfaf2735f0ed2b23c0.jpg', retail: 55.00, tiers: [[6, 229.99 / 6, 'pack'], [10, 34.99], [31, 31.99], [80, 27.99, 200]], drive: 'https://drive.google.com/drive/folders/1zjjXGj10kVl8MH6KWgVwA6RNqFtoFzpn' },
+  { id: 'fio', cat: 'Camisetas', name: 'Camisetas Fio 30.1 Premium', short: 'Fio 30.1 Premium', desc: 'Pré-lavadas: não encolhem.', img: './assets/f2cc051582acf4e9b6d46795c80caaf8.jpg', retail: 35.00, tiers: [[6, 19.99], [10, 18.99], [31, 15.99], [80, 14.99], [200, 14.50]], drive: 'https://drive.google.com/drive/folders/1MFq_KiWIkWmqBIntypd8JhbOf3TBFxrO' },
+  { id: 'piquet', cat: 'Polos', name: 'Polo Piquet Duplo', short: 'Polo Piquet Duplo', desc: 'Piquet duplo, clássica e versátil.', img: './assets/2daa0d9d3616cfe222bf3decd3f91736.jpg', retail: 69.99, tiers: [[6, 55.00], [10, 45.99], [31, 42.99], [90, 38.99], [200, 37.99]], drive: 'https://drive.google.com/drive/folders/11iN7HRA_YDx11dz-nKv2ePxKGZtJRz5h' },
+  { id: 'polaroma', cat: 'Polos', name: 'Polo Zara Roma', short: 'Polo Zara Roma', desc: 'Tecido Roma, modelagem Zara.', img: './assets/435ff4fb02004e68f675d5e709740aea.jpg', retail: 90.00, tiers: [[6, 55.00], [10, 50.00], [30, 48.00], [50, 47.00], [100, 45.00]], drive: 'https://drive.google.com/drive/folders/1PIn7i8rBliQymrWXiG8hOd8yz7qdcIx2' },
+  { id: 'dryfit', cat: 'Polos', name: 'Polos Dryfit', short: 'Polos Dryfit', desc: 'Leve e respirável, tecido dryfit.', img: './assets/b94a12d30f445e0041cc39edc7f2be3f.jpg', retail: 60.00, tiers: [[6, 45.00], [10, 40.00], [30, 38.00], [100, 33.00]], drive: 'https://drive.google.com/drive/folders/1d4jroBEpkgAtDGJLjFKrTdWcujPe6X-Y' },
+  { id: 'bzroma', cat: 'Bermudas', name: 'Bermuda Zara Roma', short: 'Bermuda Zara Roma', desc: 'Waffer com elastano.', img: './assets/59ab83490b283f750c5f6161fc11f7d8.jpg', retail: 69.99, tiers: [[6, 50.00], [10, 44.99], [31, 41.99], [80, 39.99], [200, 36.99]], drive: 'https://drive.google.com/drive/folders/1kgwhKPHuw98op2ICd0_8iKEwC4i5Yu8B' },
+  { id: 'tactel', cat: 'Bermudas', name: 'Bermuda Tactel com Elastano', short: 'Bermuda Tactel', desc: 'Tactel com elastano, leve e confortável.', img: './assets/9c56ad442bc0659a46925bf3900b4093.jpg', retail: 35.00, tiers: [[6, 19.99], [10, 17.99], [31, 15.99], [80, 13.99], [200, 12.99]], drive: 'https://drive.google.com/drive/folders/1osPPH2ZyGorZTz6KM9YP_doeCBz4xoP8' },
+  { id: 'conjunto', cat: 'Conjuntos', name: 'Conjuntos Suedini', short: 'Conjuntos Suedini', desc: 'Camiseta e bermuda em suedini.', img: './assets/91ff1b800242d64866ffb591ad464bb4.jpg', retail: 110.00, tiers: [[6, 75.00]], badge: 'Preço promocional', drive: 'https://drive.google.com/drive/folders/12mcxNuuCWiFBb3NWwt68GO5X-oYGfpNW' },
+  { id: 'tenis', cat: 'Tênis', name: 'Tênis', short: 'Tênis', desc: 'Modelos variados de alto giro.', img: './assets/6402811072afa5f70ec58af2308dfc9c.jpg', retail: 120.00, tiers: [[6, 85.00], [10, 75.00], [15, 68.00]], drive: 'https://drive.google.com/drive/folders/1zMsD5LMH1KRqVbqaBsZqvLB_5opXxYhd' }
+];
+var CATS = ['Todos', 'Camisetas', 'Polos', 'Bermudas', 'Conjuntos', 'Tênis'];
+
+function brl(v) {
+  return 'R$' + (Math.round(v * 100) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function odo(str) {
+  return String(str).split('').reverse().map(function (ch) {
+    var d = /\d/.test(ch);
+    return { isD: d, isS: !d, y: d ? Number(ch) * 10 : 0, ch: ch };
+  });
+}
+function tierFor(p, q) {
+  var t = p.tiers[0];
+  for (var i = 0; i < p.tiers.length; i++) { if (q >= p.tiers[i][0]) t = p.tiers[i]; }
+  return t;
+}
+function tierLine(p) {
+  if (p.tiers.length === 1) return 'Preço único a partir de 6 peças: ' + brl(p.tiers[0][1]) + ' cada.';
+  return p.tiers.map(function (t, i) {
+    var next = p.tiers[i + 1];
+    var range = next ? (t[0] + '–' + (next[0] - 1)) : (t[2] ? (t[0] + '–' + t[2]) : (t[0] + '+'));
+    var price = t[2] === 'pack' ? '6 por ' + brl(229.99) : brl(t[1]);
+    return range + ': ' + price;
+  }).join('  ·  ');
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var rm = false;
+    try { rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    this.reduced = rm;
+    this.state = { filter: 'Todos', pending: null, leaving: false, revealed: {}, openId: null, qtyText: '6', count: rm ? 1 : 0 };
+    this.setBadges = this.setBadges.bind(this);
+    this.cardEls = {};
+    this.refFns = {};
+    this.chipEls = {};
+    this.chipFns = {};
+    this.onResize = this.onResize.bind(this);
+    this.setHero = this.setHero.bind(this);
+    this.touchNoop = function () {};
+    this.currentIds = [];
+  }
+  cardRef(id) {
+    var self = this;
+    if (!this.refFns[id]) this.refFns[id] = function (el) { if (el) self.cardEls[id] = el; else delete self.cardEls[id]; };
+    return this.refFns[id];
+  }
+  revealAll() {
+    var all = {};
+    this.currentIds.forEach(function (id) { all[id] = 0; });
+    this.setState({ revealed: all });
+  }
+  // Cards entram quando aparecem; os que entram juntos (mesma linha, ou a grade toda após trocar filtro) ganham +80ms cada, na ordem da grade
+  observeCards() {
+    var self = this;
+    if (this.cardIO) this.cardIO.disconnect();
+    if (this.reduced || !('IntersectionObserver' in window)) { this.revealAll(); return; }
+    this.cardIO = new IntersectionObserver(function (entries) {
+      var hits = entries.filter(function (e) { return e.isIntersecting; }).map(function (e) { return e.target; });
+      if (!hits.length) return;
+      var ids = Object.keys(self.cardEls).filter(function (id) { return hits.indexOf(self.cardEls[id]) > -1; });
+      ids.sort(function (a, b) { return self.currentIds.indexOf(a) - self.currentIds.indexOf(b); });
+      ids.forEach(function (id) { self.cardIO.unobserve(self.cardEls[id]); });
+      self.setState(function (s) {
+        var next = Object.assign({}, s.revealed);
+        var i = 0;
+        ids.forEach(function (id) { if (next[id] === undefined) { next[id] = i * 80; i++; } });
+        return { revealed: next };
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+    Object.keys(this.cardEls).forEach(function (id) {
+      if (self.state.revealed[id] === undefined) self.cardIO.observe(self.cardEls[id]);
+    });
+  }
+  chipRef(label) {
+    var self = this;
+    if (!this.chipFns[label]) this.chipFns[label] = function (el) { if (el) self.chipEls[label] = el; else delete self.chipEls[label]; };
+    return this.chipFns[label];
+  }
+  // FLIP: a pílula assume a largura nova já "encolhida/esticada" para parecer a antiga, depois desliza até o novo filtro
+  moveInd(label, animate) {
+    var self = this;
+    var el = this.chipEls[label];
+    if (!el) return;
+    var x = el.offsetLeft, w = el.offsetWidth, cur = this.state.ind;
+    if (!animate || !cur || this.reduced || !w) { this.setState({ ind: { x: x, w: w, s: 1, anim: false } }); return; }
+    this.setState({ ind: { x: cur.x, w: w, s: cur.w / w, anim: false } }, function () {
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
+        self.setState({ ind: { x: x, w: w, s: 1, anim: true } });
+      }); });
+    });
+  }
+  onResize() { this.moveInd(this.state.pending || this.state.filter, false); }
+  pickFilter(c) {
+    var self = this;
+    if (c === (this.state.pending || this.state.filter)) return;
+    this.moveInd(c, true);
+    clearTimeout(this.filterT);
+    if (this.reduced) { this.setState({ filter: c, pending: null, leaving: false, revealed: {} }); return; }
+    this.setState({ pending: c, leaving: true });
+    this.filterT = setTimeout(function () {
+      self.setState({ filter: c, pending: null, leaving: false, revealed: {} });
+    }, 170);
+  }
+  setBadges(el) { this.badgesEl = el; }
+  setHero(el) { this.heroEl = el; }
+  componentDidMount() {
+    this.observeCards();
+    var me = this;
+    this.moveInd(this.state.filter, false);
+    window.addEventListener('resize', this.onResize);
+    try { document.fonts.ready.then(function () { me.onResize(); }); } catch (e) {}
+    // iOS só aplica :active (encolher o card) com um ouvinte de toque
+    try { document.addEventListener('touchstart', this.touchNoop, { passive: true }); } catch (e) {}
+    // Botão flutuante aparece quando o topo sai quase todo da tela
+    if (this.heroEl && 'IntersectionObserver' in window) {
+      this.heroIO = new IntersectionObserver(function (es) {
+        var e = es[es.length - 1];
+        var past = !e.isIntersecting || e.intersectionRatio < 0.25;
+        if (past !== !!me.state.pastTop) me.setState({ pastTop: past });
+      }, { threshold: [0, 0.25, 0.5] });
+      this.heroIO.observe(this.heroEl);
+    } else {
+      this.setState({ pastTop: true });
+    }
+    var self = this;
+    if (this.reduced) return;
+    var start = function () {
+      if (self.counted) return;
+      self.counted = true;
+      var t0 = null;
+      var step = function (now) {
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / 1200);
+        var eased = 1 - Math.pow(1 - p, 3);
+        self.setState({ count: eased });
+        if (p < 1) self.raf = requestAnimationFrame(step);
+      };
+      self.raf = requestAnimationFrame(step);
+    };
+    if (this.badgesEl && 'IntersectionObserver' in window) {
+      this.io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { start(); self.io.disconnect(); }
+      }, { threshold: 0.6 });
+      this.io.observe(this.badgesEl);
+    } else {
+      start();
+    }
+  }
+  componentWillUnmount() {
+    if (this.io) this.io.disconnect();
+    if (this.cardIO) this.cardIO.disconnect();
+    clearTimeout(this.filterT);
+    clearTimeout(this.dropT);
+    if (this.heroIO) this.heroIO.disconnect();
+    try { document.removeEventListener('touchstart', this.touchNoop); } catch (e) {}
+    window.removeEventListener('resize', this.onResize);
+    if (this.raf) cancelAnimationFrame(this.raf);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.filter !== this.state.filter) this.observeCards();
+    try { document.body.style.overflow = this.state.openId ? 'hidden' : ''; } catch (e) {}
+  }
+  qtyFrom(t) {
+    var n = parseInt(String(t).replace(/\D/g, ''), 10);
+    if (!n || n < 6) n = 6;
+    if (n > 9999) n = 9999;
+    return n;
+  }
+  qty() { return this.qtyFrom(this.state.qtyText); }
+  // Troca a quantidade; se entrou numa faixa mais barata, mostra o selo por 1,5s
+  setQty(text) {
+    var self = this;
+    var upd = { qtyText: text };
+    var p = PRODUCTS.find(function (x) { return x.id === self.state.openId; });
+    if (p) {
+      var before = tierFor(p, this.qty())[1];
+      var after = tierFor(p, this.qtyFrom(text))[1];
+      if (after < before - 1e-9) {
+        upd.dropOn = true;
+        upd.dropN = (this.state.dropN || 0) + 1;
+        clearTimeout(this.dropT);
+        this.dropT = setTimeout(function () { self.setState({ dropOn: false }); }, 1500);
+      }
+    }
+    this.setState(upd);
+  }
+  renderVals() {
+    var self = this;
+    var f = this.state.filter;
+    var af = this.state.pending || f;
+    var revealed = this.state.revealed;
+    var leaving = this.state.leaving;
+    var list = PRODUCTS.filter(function (p) { return f === 'Todos' || p.cat === f; });
+    this.currentIds = list.map(function (p) { return p.id; });
+    var visible = list.map(function (p) {
+      var min = Math.min.apply(null, p.tiers.map(function (t) { return t[1]; }));
+      var shown = revealed[p.id] !== undefined;
+      return {
+        cls: 'card' + (shown ? (leaving ? ' out' : ' in') : ''),
+        delay: shown && !leaving ? revealed[p.id] : 0,
+        ref: self.cardRef(p.id),
+        short: p.short, img: p.img || null, noImg: !p.img, badge: p.badge || null,
+        badgeCls: p.id === 'time' ? 'sweep sweep-4' : '',
+        fromLabel: brl(min), aria: p.name + ', a partir de ' + brl(min),
+        open: function () { clearTimeout(self.dropT); self.setState({ openId: p.id, qtyText: '6', dropOn: false }); }
+      };
+    });
+    var filters = CATS.map(function (c) {
+      return { label: c, on: c === af ? 'true' : 'false', cls: c === af ? 'chip on' : 'chip', ref: self.chipRef(c), pick: function () { self.pickFilter(c); } };
+    });
+
+    var p = PRODUCTS.find(function (x) { return x.id === self.state.openId; }) || null;
+    var q = this.qty();
+    var cur = null, calc = null, waOrder = WA;
+    if (p) {
+      var t = tierFor(p, q);
+      var unit = t[1];
+      var total = Math.round(unit * q * 100) / 100;
+      var retailTotal = p.retail * q;
+      var save = Math.max(0, retailTotal - total);
+      cur = {
+        name: p.name, desc: p.desc, img: p.img || null, noImg: !p.img, badge: p.badge || null,
+        badgeCls: p.id === 'time' ? 'sweep sweep-4' : '',
+        ref: p.ref !== false, drive: p.drive, retailLabel: brl(p.retail), tierLine: tierLine(p)
+      };
+      calc = {
+        unit: brl(unit), total: brl(total), save: brl(save),
+        pct: Math.round(save / retailTotal * 100) + '%',
+        packNote: t[2] === 'pack' ? '6 peças por ' + brl(229.99) + ' no total' : null
+      };
+      calc.unitOdo = odo(calc.unit);
+      calc.totalOdo = odo(calc.total);
+      waOrder = WA + '?text=' + encodeURIComponent('Olá Kelvin! Vim pelo catálogo. Quero ' + q + ' peças de ' + p.name + '. Podemos fazer a chamada de vídeo?');
+    }
+
+    var c = this.state.count;
+    var ind = this.state.ind;
+    return {
+      indCls: ind && ind.anim ? 'chip-ind anim' : 'chip-ind',
+      fabCls: this.state.pastTop ? 'fab show' : 'fab',
+      fabTab: this.state.pastTop ? 0 : -1,
+      fabHidden: this.state.pastTop ? 'false' : 'true',
+      ind: ind ? { x: ind.x, w: ind.w, s: ind.s, o: 1 } : { x: 0, w: 0, s: 1, o: 0 },
+      setBadges: this.setBadges,
+      yearsLabel: String(Math.round(6 * c)),
+      storesLabel: c >= 1 ? '20 mil' : Math.round(20000 * c).toLocaleString('pt-BR'),
+      filters: filters,
+      visible: visible,
+      countLabel: visible.length + (visible.length === 1 ? ' produto' : ' produtos'),
+      open: !!p,
+      showFab: !p,
+      cur: cur || { name: '', desc: '', img: null, noImg: false, badge: null, badgeCls: '', ref: false, drive: '#', retailLabel: '', tierLine: '' },
+      calc: calc || { unit: '', total: '', save: '', pct: '', packNote: null, unitOdo: [], totalOdo: [] },
+      dropOn: !!this.state.dropOn,
+      dropCls: (this.state.dropN || 0) % 2 ? 'drop a' : 'drop b',
+      qtyText: this.state.qtyText,
+      atMin: q <= 6,
+      waOrder: waOrder,
+      waStart: WA + '?text=' + encodeURIComponent('Olá Kelvin! Vim pelo catálogo e quero começar.'),
+      close: function () { self.setState({ openId: null }); },
+      dec: function () { self.setQty(String(Math.max(6, self.qty() - 1))); },
+      inc: function () { self.setQty(String(Math.min(9999, self.qty() + 1))); },
+      onQty: function (e) { self.setQty(String(e.target.value).replace(/\D/g, '').slice(0, 4)); },
+      onQtyBlur: function () { self.setState({ qtyText: String(self.qty()) }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
